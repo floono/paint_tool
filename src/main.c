@@ -1,6 +1,9 @@
 /* Enable SDL3 callbacks instead of using main() */
 #define SDL_MAIN_USE_CALLBACKS 1
 
+/* STDLIB Headers */
+#include <stdio.h>
+
 /* SDL3 Headers */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -8,10 +11,25 @@
 /* GLAD Headers */
 #include <glad/glad.h>
 
-static SDL_Window *window = NULL;
+/* STB Headers */
+#include <stb_ds.h>
+
+/* SRC Headers */
+#include <point.h>
+
+#define MAX_POINTS 1000000
+
+static SDL_Window* window = NULL;
 static SDL_GLContext gl_context = NULL;
 
-SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
+unsigned int VAO, VBO;
+Point* points = NULL;
+int drawing = 0;
+
+int window_width = 1280;
+int window_height = 720;
+
+SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
     /* Initializing SDL and relevant SDL subsystems */
     if(!SDL_Init(SDL_INIT_VIDEO)) 
@@ -25,7 +43,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     /* Creating a window with SDL */
-    window = SDL_CreateWindow("paint tool", 1280, 720, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("paint tool", window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if(!window)
     {
         SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -47,28 +65,70 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
          return SDL_APP_FAILURE;
     }
 
+    /* VAO creation and binding */
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    /* VBO creation and binding */
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    /* Linking vertex buffer to drawn points data */
+    glBufferData(GL_ARRAY_BUFFER, MAX_POINTS * sizeof(Point), NULL, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
+SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event *event)
 {
-    if(event->type == SDL_EVENT_QUIT) 
+    if(event->type == SDL_EVENT_QUIT) // Allowing safe exit
     {
         return SDL_APP_SUCCESS;
     }
-    else if (event->type == SDL_EVENT_WINDOW_RESIZED)
+    if(event->type == SDL_EVENT_WINDOW_RESIZED) // Ensuring OpenGL context resizes with OS window
     {
-        glViewport(0, 0, event->window.data1, event->window.data2);
+        window_width = event->window.data1;
+        window_height = event->window.data2;
+        glViewport(0, 0, window_width, window_height);
+    }
+
+    if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT) // On begin drawing (left click)
+    {
+        drawing = 1;
+    }
+    else if(event->type == SDL_EVENT_MOUSE_BUTTON_UP && event->button.button == SDL_BUTTON_LEFT)
+    {
+        drawing = 0;
+    }
+
+    if(event->type == SDL_EVENT_MOUSE_MOTION && drawing)
+    {
+        float ndc_x = (event->motion.x / (float)window_width) * 2.0f - 1.0f;
+        float ndc_y = 1.0f - (event->motion.y / (float)window_height) * 2.0f;
+        Point p = { ndc_x, ndc_y };
+        arrput(points, p);
     }
 
     return SDL_APP_CONTINUE;
 }
 
 /* Runs every frame */
-SDL_AppResult SDL_AppIterate(void *appstate)
+SDL_AppResult SDL_AppIterate(void* appstate)
 {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+    glPointSize(5.0f);
+
+    /* Updating buffer with new points */
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, arrlen(points) * sizeof(Point), points);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_POINTS, 0, arrlen(points));
+    glBindVertexArray(0);
 
     SDL_GL_SwapWindow(window);
 
@@ -76,7 +136,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 }
 
 
-void SDL_AppQuit(void *appstate, SDL_AppResult result)
+void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
     SDL_GL_DestroyContext(gl_context);
 }
