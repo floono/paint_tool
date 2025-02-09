@@ -56,6 +56,9 @@ char* readShader(char* filename)
         return NULL;
     }
 
+    fclose(fp);
+    fileContents[fileSize] = '\0';
+
     return fileContents;
 }
 
