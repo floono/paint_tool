@@ -1,7 +1,7 @@
 /* Enable SDL3 callbacks instead of using main() */
 #define SDL_MAIN_USE_CALLBACKS 1
 
-/* STDLIB Headers */
+/* STD Headers */
 #include <stdio.h>
 
 /* SDL3 Headers */
@@ -16,18 +16,17 @@
 
 /* SRC Headers */
 #include <point.h>
+#include <drawing.h>
 
 #define MAX_POINTS 1000000
 
 static SDL_Window* window = NULL;
 static SDL_GLContext gl_context = NULL;
 
-unsigned int VAO, VBO;
-Point* points = NULL;
-int drawing = 0;
-
 int window_width = 1280;
 int window_height = 720;
+
+unsigned int VAO, VBO;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -43,7 +42,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     /* Creating a window with SDL */
-    window = SDL_CreateWindow("paint tool", window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("paint tool", window_width, window_height, SDL_WINDOW_OPENGL);
     if(!window)
     {
         SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -94,13 +93,16 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event *event)
         glViewport(0, 0, window_width, window_height);
     }
 
-    if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT) // On begin drawing (left click)
+    if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT)
     {
-        drawing = 1;
+        float ndc_x = (event->button.x / (float)window_width) * 2.0f - 1.0f;
+        float ndc_y = 1.0f - (event->button.y / (float)window_height) * 2.0f;
+        Point p = {ndc_x, ndc_y};
+        start_stroke(p);
     }
     else if(event->type == SDL_EVENT_MOUSE_BUTTON_UP && event->button.button == SDL_BUTTON_LEFT)
     {
-        drawing = 0;
+        stop_stroke();
     }
 
     if(event->type == SDL_EVENT_MOUSE_MOTION && drawing)
@@ -108,7 +110,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event *event)
         float ndc_x = (event->motion.x / (float)window_width) * 2.0f - 1.0f;
         float ndc_y = 1.0f - (event->motion.y / (float)window_height) * 2.0f;
         Point p = { ndc_x, ndc_y };
-        arrput(points, p);
+        add_to_stroke(p);
     }
 
     return SDL_APP_CONTINUE;
