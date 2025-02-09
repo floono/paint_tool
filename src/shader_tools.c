@@ -67,26 +67,28 @@ ShaderProgram setupShaders(char* vertSrcDir, char* fragSrcDir)
     ShaderProgram program;
 
     /* Compiling Vertex Shader */
-    program.vert.id = glCreateShader(GL_VERTEX_SHADER);
-    program.vert.src = readShader(vertSrcDir);
-    glShaderSource(program.vert.id, 1, &program.vert.src, NULL);
-    glCompileShader(program.vert.id);
+    program.vert_id = glCreateShader(GL_VERTEX_SHADER);
+    char* vert_src = readShader(vertSrcDir);
+    glShaderSource(program.vert_id, 1, (const char**)&vert_src, NULL);
+    glCompileShader(program.vert_id);
+    free(vert_src);
 
     /* Compiling Fragment Shader */
-    program.frag.id = glCreateShader(GL_FRAGMENT_SHADER);
-    program.frag.src = readShader(fragSrcDir);
-    glShaderSource(program.frag.id, 1, &program.frag.src, NULL);
-    glCompileShader(program.frag.id);
+    program.frag_id = glCreateShader(GL_FRAGMENT_SHADER);
+    char* frag_src = readShader(fragSrcDir);
+    glShaderSource(program.frag_id, 1, (const char**)&frag_src, NULL);
+    glCompileShader(program.frag_id);
+    free(frag_src);
 
     /* Linking Shaders */
     program.id = glCreateProgram();
-    glAttachShader(program.id, program.vert.id);
-    glAttachShader(program.id, program.frag.id);
+    glAttachShader(program.id, program.vert_id);
+    glAttachShader(program.id, program.frag_id);
     glLinkProgram(program.id);
 
     /* Flagging the shaders for deletion once the shader program is destroyed */
-    glDeleteShader(program.vert.id);
-    glDeleteShader(program.frag.id);
+    glDeleteShader(program.vert_id);
+    glDeleteShader(program.frag_id);
 
     return program;
 }

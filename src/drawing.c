@@ -10,7 +10,7 @@
 int drawing = 0;
 Point* points = NULL;
 
-int num_interpolated_points = 10;
+int num_interpolated_points = 100;
 
 Point point_lerp(Point p1, Point p2, float t)
 {
