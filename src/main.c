@@ -3,6 +3,7 @@
 
 /* STD Headers */
 #include <stdio.h>
+#include <math.h>
 
 /* SDL3 Headers */
 #include <SDL3/SDL.h>
@@ -17,6 +18,7 @@
 /* SRC Headers */
 #include <point.h>
 #include <drawing.h>
+#include <shader_tools.h>
 
 #define MAX_POINTS 1000000
 
@@ -27,6 +29,7 @@ int window_width = 1280;
 int window_height = 720;
 
 unsigned int VAO, VBO;
+ShaderProgram shader_program;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -63,6 +66,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
          SDL_Log("Failed to initialize glad.");
          return SDL_APP_FAILURE;
     }
+
+    shader_program = setupShaders("shaders/basic.vert", "shaders/basic.frag");
 
     /* VAO creation and binding */
     glGenVertexArrays(1, &VAO);
@@ -122,18 +127,17 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glPointSize(5.0f);
+    glUseProgram(shader_program.id);
 
     /* Updating buffer with new points */
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, arrlen(points) * sizeof(Point), points);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glBindVertexArray(VAO);
+    float time = (float) SDL_GetTicks() / 1000.0f;
+    glUniform1f(glGetUniformLocation(shader_program.id, "time"), time);
+
     glDrawArrays(GL_POINTS, 0, arrlen(points));
-    glBindVertexArray(0);
 
     SDL_GL_SwapWindow(window);
-
     return SDL_APP_CONTINUE;
 }
 
@@ -141,4 +145,5 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
     SDL_GL_DestroyContext(gl_context);
+    arrfree(points);
 }
