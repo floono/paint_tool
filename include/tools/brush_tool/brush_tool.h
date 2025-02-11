@@ -26,5 +26,4 @@ class BrushTool : public Tool
         void on_press() override;
         void on_hold() override;
         void on_release() override;
-        ~BrushTool() override = default;
 };

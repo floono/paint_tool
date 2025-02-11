@@ -14,4 +14,4 @@ add_subdirectory(libs/glad EXCLUDE_FROM_ALL)
 
 add_executable(paint_tool ${SOURCES})
 target_link_libraries(paint_tool PRIVATE SDL3::SDL3 glad)
-target_include_directories(paint_tool PUBLIC ${CMAKE_SOURCE_DIR})
+target_include_directories(paint_tool PUBLIC ${CMAKE_SOURCE_DIR}/include)

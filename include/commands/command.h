@@ -7,3 +7,7 @@ class Command
     virtual ~Command() = default;
 };
 
+class CommandHistory
+{
+
+};
