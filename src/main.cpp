@@ -3,7 +3,6 @@
 
 /* STD Headers */
 #include <stdio.h>
-#include <math.h>
 
 /* SDL3 Headers */
 #include <SDL3/SDL.h>
@@ -11,14 +10,6 @@
 
 /* GLAD Headers */
 #include <glad/glad.h>
-
-/* STB Headers */
-#include <stb_ds.h>
-
-/* SRC Headers */
-#include <point.h>
-#include <drawing.h>
-#include <shader_tools.h>
 
 #define MAX_POINTS 1000000
 
@@ -29,7 +20,6 @@ int window_width = 1280;
 int window_height = 720;
 
 unsigned int VAO, VBO;
-ShaderProgram shader_program;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -67,8 +57,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
          return SDL_APP_FAILURE;
     }
 
-    shader_program = setupShaders("shaders/basic.vert", "shaders/basic.frag");
-
     /* VAO creation and binding */
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -78,7 +66,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
     /* Linking vertex buffer to drawn points data */
-    glBufferData(GL_ARRAY_BUFFER, MAX_POINTS * sizeof(Point), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, MAX_POINTS, NULL, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -91,31 +79,19 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event *event)
     {
         return SDL_APP_SUCCESS;
     }
-    if(event->type == SDL_EVENT_WINDOW_RESIZED) // Ensuring OpenGL context resizes with OS window
-    {
-        window_width = event->window.data1;
-        window_height = event->window.data2;
-        glViewport(0, 0, window_width, window_height);
-    }
 
     if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT)
     {
-        float ndc_x = (event->button.x / (float)window_width) * 2.0f - 1.0f;
-        float ndc_y = 1.0f - (event->button.y / (float)window_height) * 2.0f;
-        Point p = {ndc_x, ndc_y};
-        start_stroke(p);
+
     }
     else if(event->type == SDL_EVENT_MOUSE_BUTTON_UP && event->button.button == SDL_BUTTON_LEFT)
     {
-        stop_stroke();
+
     }
 
-    if(event->type == SDL_EVENT_MOUSE_MOTION && drawing)
+    if(event->type == SDL_EVENT_MOUSE_MOTION)
     {
-        float ndc_x = (event->motion.x / (float)window_width) * 2.0f - 1.0f;
-        float ndc_y = 1.0f - (event->motion.y / (float)window_height) * 2.0f;
-        Point p = { ndc_x, ndc_y };
-        add_to_stroke(p);
+
     }
 
     return SDL_APP_CONTINUE;
@@ -126,16 +102,6 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    glPointSize(5.0f);
-    glUseProgram(shader_program.id);
-
-    /* Updating buffer with new points */
-    glBufferSubData(GL_ARRAY_BUFFER, 0, arrlen(points) * sizeof(Point), points);
-
-    float time = (float) SDL_GetTicks() / 1000.0f;
-    glUniform1f(glGetUniformLocation(shader_program.id, "time"), time);
-
-    glDrawArrays(GL_POINTS, 0, arrlen(points));
 
     SDL_GL_SwapWindow(window);
     return SDL_APP_CONTINUE;
@@ -145,5 +111,4 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
     SDL_GL_DestroyContext(gl_context);
-    arrfree(points);
 }
