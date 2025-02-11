@@ -11,7 +11,9 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_subdirectory(libs/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(libs/glad EXCLUDE_FROM_ALL)
+add_subdirectory(libs/glm EXCLUDE_FROM_ALL)
+add_subdirectory(libs/imgui EXCLUDE_FROM_ALL)
 
 add_executable(paint_tool ${SOURCES})
-target_link_libraries(paint_tool PRIVATE SDL3::SDL3 glad)
+target_link_libraries(paint_tool PRIVATE SDL3::SDL3 glad glm imgui)
 target_include_directories(paint_tool PUBLIC ${CMAKE_SOURCE_DIR}/include)
