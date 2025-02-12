@@ -1,14 +1,20 @@
 #pragma once
 
-/* Standards Library Includes */
+/* STDLIB */
 #include <vector>
+#include <memory>
 
-/* Source Includes */
+/* GLM  */
+#include <glm/vec2.hpp>
+
+/* SOURCE */
 #include <tools/tool.h>
+
+class Layer;
 
 struct BrushStrokePoint
 {
-    float x, y;
+    glm::vec2 coords;
 };
 
 struct BrushStroke
@@ -20,10 +26,9 @@ class BrushTool : public Tool
 {
     private:
         BrushStroke current_stroke;
-        bool is_drawing = false;
 
     public:
-        void on_press() override;
-        void on_hold() override;
-        void on_release() override;
+        void on_press(glm::vec2 ndc, Layer* current_layer) override;
+        void on_hold(glm::vec2 ndc, Layer* current_layer) override;
+        void on_release(glm::vec2 ndc, Layer* current_layer) override;
 };
