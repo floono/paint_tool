@@ -16,7 +16,7 @@ Layer::Layer()
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glBufferData(GL_ARRAY_BUFFER, 100000 * sizeof(glm::vec2), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 100000 * sizeof(glm::vec2), NULL, GL_DYNAMIC_DRAW); // TEMPORARY HARDCODED BUFFER SIZE
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -35,24 +35,32 @@ Layer::Layer()
 
 Layer::~Layer()
 {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteFramebuffers(1, &FBO);
     glDeleteTextures(1, &texture);
 }
 
 void Layer::add_stroke(BrushStroke stroke)
 {
+    size_t brush_stroke_size = stroke.points.size() * sizeof(glm::vec2);
+
     brush_strokes.push_back(stroke);
 
-    size_t bytes = 0;
-
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    for(BrushStroke s : brush_strokes)
-    {
-        glPointSize(5.0f);
-    }
+    
+    glPointSize(5.0f);
+    glBufferSubData(GL_ARRAY_BUFFER, brush_strokes_size, brush_stroke_size, stroke.points.data());
+    glDrawArrays(GL_POINTS, brush_strokes_size / sizeof(glm::vec2), stroke.points.size());
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    brush_strokes_size += brush_stroke_size;
 }
 
 void Layer::remove_stroke()
-{
+{   
+    size_t brush_stroke_size = brush_strokes.back().points.size() * sizeof(glm::vec2);
+    brush_strokes_size -= brush_stroke_size;
     brush_strokes.pop_back();
 }

@@ -11,7 +11,7 @@ class Layer
         unsigned int VBO, VAO, FBO;
         unsigned int texture;
         std::vector<BrushStroke> brush_strokes;
-        size_t brush_strokes_size;
+        size_t brush_strokes_size = 0;
     public:
         Layer();
         ~Layer();
