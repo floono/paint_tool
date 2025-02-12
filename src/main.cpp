@@ -68,19 +68,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
          return SDL_APP_FAILURE;
     }
 
-    /* VAO creation and binding */
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    /* VBO creation and binding */
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    /* Linking vertex buffer to drawn points data */
-    glBufferData(GL_ARRAY_BUFFER, MAX_POINTS, NULL, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
     return SDL_APP_CONTINUE;
 }
 
