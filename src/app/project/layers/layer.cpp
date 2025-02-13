@@ -5,8 +5,8 @@
 #include <glm/vec2.hpp>
 
 /* SOURCE */
-#include <layers/layer.h>
-#include <tools/brush_tool/brush_tool.h>
+#include "app/project/layers/layer.h"
+#include "app/tools/brush_tool/brush_tool.h"
 
 Layer::Layer()
 {
@@ -41,6 +41,11 @@ Layer::~Layer()
     glDeleteTextures(1, &texture);
 }
 
+unsigned int Layer::get_texture()
+{
+    return texture;
+}
+
 void Layer::add_stroke(BrushStroke stroke)
 {
     size_t brush_stroke_size = stroke.points.size() * sizeof(glm::vec2);
@@ -48,6 +53,8 @@ void Layer::add_stroke(BrushStroke stroke)
     brush_strokes.push_back(stroke);
 
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     
     glPointSize(5.0f);
     glBufferSubData(GL_ARRAY_BUFFER, brush_strokes_size, brush_stroke_size, stroke.points.data());
